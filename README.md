@@ -13,8 +13,8 @@
 * install
 
   1. montare l'immagine appena scaricata ed eseguire il package.
-  1. da System Preference -> Security & Privacy - autorizzare il caricamento del modulo esterno
-  1. riavviare
+  2. da System Preference -> Security & Privacy - autorizzare il caricamento del modulo esterno
+  3. riavviare
 
 * caricamento manuale del modulo kernel
 
