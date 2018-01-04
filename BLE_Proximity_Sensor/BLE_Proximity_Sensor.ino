@@ -33,7 +33,7 @@ BLEScan* pBLEScan;
 BLEClient*  pClient;
 bool deviceFound = false;
 
-String knownAddresses[] = { "  :  :  :  :  :  ", "  :  :  :  :  :  "};
+String knownAddresses[] = { "  :  :  :  :  :  ", "  :  :  :  :  :  ", "cb:df:8f:80:91:ae"};
 
 const char* ssid = "***";
 const char* password = "***";
@@ -164,9 +164,9 @@ void loop() {
     Serial.println("on");
     digitalWrite(LED, LOW);
 
-    sendMessage();
-    Serial.println("Waiting for 60 seconds");
-    delay(60000);
+    //sendMessage();
+    Serial.println("Waiting for 1 seconds");
+    delay(1000);
 
   }
   else {
