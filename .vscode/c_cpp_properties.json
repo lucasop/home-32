@@ -7,7 +7,8 @@
               "C:\\Users\\37413900\\Documents\\prj\\VScode-project\\home-32\\hardware\\espressif\\esp32\\cores\\esp32",
               "C:\\Users\\37413900\\Documents\\prj\\VScode-project\\home-32\\hardware\\espressif\\esp32\\libraries\\BLE\\src",
               "C:\\Users\\37413900\\Documents\\prj\\VScode-project\\home-32\\hardware\\espressif\\esp32\\libraries\\WIFI\\src",
-              "C:\\Users\\37413900\\Documents\\prj\\VScode-project\\home-32\\libraries\\PubSubClient"
+              "C:\\Users\\37413900\\Documents\\prj\\VScode-project\\home-32\\libraries\\PubSubClient",
+              "C:\\Users\\37413900\\Documents\\prj\\VScode-project\\home-32\\libraries\\GP2Y1010_DustSensor"
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": false,
@@ -15,8 +16,8 @@
                     "C:\\Users\\37413900\\Documents\\prj\\VScode-project\\home-32\\hardware\\espressif\\esp32\\cores\\esp32",
                     "C:\\Users\\37413900\\Documents\\prj\\VScode-project\\home-32\\hardware\\espressif\\esp32\\libraries\\BLE\\src",
                     "C:\\Users\\37413900\\Documents\\prj\\VScode-project\\home-32\\hardware\\espressif\\esp32\\libraries\\WIFI\\src",
-                    "C:\\Users\\37413900\\Documents\\prj\\VScode-project\\home-32\\libraries\\PubSubClient"
-
+                    "C:\\Users\\37413900\\Documents\\prj\\VScode-project\\home-32\\libraries\\PubSubClient",
+                    "C:\\Users\\37413900\\Documents\\prj\\VScode-project\\home-32\\libraries\\GP2Y1010_DustSensor"
                      ]
             },
             "intelliSenseMode": "msvc-x64"
