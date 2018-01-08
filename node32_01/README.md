@@ -81,6 +81,33 @@ Aduino IDE schema for operating SHARP GP2Y1010AU0F dust sensor in NodeMCU-32S
 * float getDustDensity()  
   get dust density (the unit is ug/m3)
 
+# ADC2 channel cannot be used when WiFi is in use
+
+ADC2 is used with WiFi. Therefor **`analogRead()`** on ADC2 pins fails.    
+ADC1 channels are save to use => GPIO32, 33, 34, 35, 36, 39.
+
+This list is an extract of the ESP-WROOM-32 pin definition ([Source](https://www.espressif.com/sites/default/files/documentation/esp32_hardware_design_guidelines_en.pdf)) and might help to find ADC1 and ADC2 pins:    
+
+| Name | Function |
+|:-------------:| ------------- |
+| _**SENSOR_VP**_ | GPIO36, SENSOR_VP, ADC_H, _**ADC1_CH0**_, RTC_GPIO0 |
+| _**SENSOR_VN**_ | GPIO39, SENSOR_VN, _**ADC1_CH3**_, ADC_H, RTC_GPIO3 |
+| _**IO34**_      | GPIO34, _**ADC1_CH6**_, RTC_GPIO4 |
+| _**IO35**_      | GPIO35, _**ADC1_CH7**_, RTC_GPIO5 |
+| _**IO32**_      | GPIO32, XTAL_32K_P (32.768 kHz crystal oscillator input), _**ADC1_CH4**_, TOUCH9, RTC_GPIO9 |
+| _**IO33**_      | GPIO33, XTAL_32K_N (32.768 kHz crystal oscillator output), _**ADC1_CH5**_, TOUCH8, RTC_GPIO8 |
+| _**IO25**_      | GPIO25, DAC_1, _**ADC2_CH8**_, RTC_GPIO6, EMAC_RXD0 |
+| _**IO26**_      | GPIO26, DAC_2, _**ADC2_CH9**_, RTC_GPIO7, EMAC_RXD1 |
+| _**IO27**_      | GPIO27, _**ADC2_CH7**_, TOUCH7, RTC_GPIO17, EMAC_RX_DV |
+| _**IO14**_      | GPIO14, _**ADC2_CH6**_, TOUCH6, RTC_GPIO16, MTMS, HSPICLK, HS2_CLK, SD_CLK, EMAC_TXD2 |
+| _**IO12**_      | GPIO12, _**ADC2_CH5**_, TOUCH5, RTC_GPIO15, MTDI, HSPIQ, HS2_DATA2, SD_DATA2, EMAC_TXD3 |
+| _**IO13**_      | GPIO13, _**ADC2_CH4**_, TOUCH4, RTC_GPIO14, MTCK, HSPID, HS2_DATA3, SD_DATA3, EMAC_RX_ER |
+| _**IO15**_      | GPIO15, _**ADC2_CH3**_, TOUCH3, MTDO, HSPICS0, RTC_GPIO13, HS2_CMD, SD_CMD, EMAC_RXD3 |
+| _**IO2**_       | GPIO2, _**ADC2_CH2**_, TOUCH2, RTC_GPIO12, HSPIWP, HS2_DATA0, SD_DATA0 |
+| _**IO0**_       | GPIO0, _**ADC2_CH1**_, TOUCH1, RTC_GPIO11, CLK_OUT1, EMAC_TX_CLK |
+| _**IO4**_       | GPIO4, _**ADC2_CH0**_, TOUCH0, RTC_GPIO10, HSPIHD, HS2_DATA1, SD_DATA1, EMAC_TX_ER |
+
+
 # link
 * GP2Y1010AU0F Data sheet  
   http://www.sharp-world.com/products/device-china/lineup/data/pdf/datasheet/gp2y1010au_e.pdf (English)  
