@@ -108,6 +108,9 @@ This list is an extract of the ESP-WROOM-32 pin definition ([Source](https://www
 | _**IO4**_       | GPIO4, _**ADC2_CH0**_, TOUCH0, RTC_GPIO10, HSPIHD, HS2_DATA1, SD_DATA1, EMAC_TX_ER |
 
 
+# PinOut
+  ![PinOut](resource/pinout_ADC.jpg)
+
 # link
 * GP2Y1010AU0F Data sheet  
   http://www.sharp-world.com/products/device-china/lineup/data/pdf/datasheet/gp2y1010au_e.pdf (English)  

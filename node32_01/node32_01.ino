@@ -20,7 +20,7 @@ const char* HA_ENTITY_ID = "";
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
-#include <GP2Y1010_DustSensor.h>
+//#include <GP2Y1010_DustSensor.h>
 #include <ESP8266Influxdb.h>
 
 const int led_pin = 21;   // GPIO21
@@ -46,7 +46,7 @@ const char* wifi_password = S_WIFI_PASSWORD;
 
 //WiFiClient client;
 
-GP2Y1010_DustSensor dustsensor;
+//GP2Y1010_DustSensor dustsensor;
 int n = 0;
 /*----------------------------------------------------------
     SHARP GP2Y1010AU0F Dust Sensor  setup
@@ -93,8 +93,8 @@ void setup() {
     Serial.println("OK");
 
 
-  dustsensor.setADCbit(10);
-  dustsensor.setInputVolts(3.3);
+  //dustsensor.setInputVolts(3.3);
+  analogSetWidth(10);                           // 10Bit resolution
   analogSetAttenuation((adc_attenuation_t)2);   // -6dB range tutti gli ADC
   //analogSetPinAttenuation(analog_pin,(adc_attenuation_t)2); // -6dB range 
   
@@ -153,11 +153,26 @@ void loop() {
   double analog_bit_num = pow(2., (double)analog_bit);
   float inputvolts = 3.3;
 
-  // culc dust density
+// culc dust density
+// pow(2., (double)analog_bit) = 2^10 =1024
+// inputvolts = 3.3 
+/*
+calcVoltage = voMeasured * (3.3v / 1024.0);
+dustDensity = (0.17 * calcVoltage - 0.1)*1000
+
+So in my case when voltage for sensor is 3.3v and measure 221
+
+calcVoltage = 221* (3.3/ 1024.0);
+dustDensity = (0.17 * 0,71 - 0.1)*1000
+-----------------------------------------------
+26,7mg/m3
+
+*/
+
   float dust = (0.17 * (mesured * (inputvolts / analog_bit_num)) - 0.1) * 1000.;
   if( dust<0 )  dust=0.;
 
-  Serial.print("Dust Density: "); Serial.print(dust); Serial.println(" ug/m3");
+  Serial.print("Dust raw: ");Serial.print(mesured); Serial.print("analogSetWidth: ");Serial.print(analogReadResolution);Serial.print("Dust Density: "); Serial.print(dust); Serial.println(" ug/m3");
 
   
 
