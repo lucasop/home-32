@@ -74,7 +74,7 @@ void setup() {
 
   Serial.println("#######################################################################");
 
-  setup_wifi();
+  //setup_wifi();
   Serial.print("Configuring OTA device...");
     //TelnetServer.begin();   //Necesary to make Arduino Software autodetect OTA device
     ArduinoOTA.onStart([]() {Serial.println("OTA starting...");});
@@ -96,7 +96,9 @@ void setup() {
   dustsensor.setInputVolts(3.3);
   analogSetAttenuation((adc_attenuation_t)2);   // -6dB range tutti gli ADC
   //analogSetPinAttenuation(analog_pin,(adc_attenuation_t)2); // -6dB range 
-  dustsensor.begin(led_pin, analog_pin);
+  
+  pinMode(led_pin,OUTPUT);
+  //dustsensor.begin(led_pin, analog_pin);
   
 }
 
@@ -129,11 +131,36 @@ void loop() {
   ArduinoOTA.handle();
 
  
-  float dust = dustsensor.getDustDensity();                      // ADC12 on GPIO2
-  for(n=1; n<8; n++) dust += dustsensor.getDustDensity();
-  dust /= 8;
+ // float dust = dustsensor.getDustDensity();                      // ADC12 on GPIO2
+  //for(n=1; n<8; n++) dust += dustsensor.getDustDensity();
+  //dust /= 8;
+  //Serial.print("Dust Density: "); Serial.print(dust); Serial.println(" ug/m3");
+
+//  Serial.println("led low");
+  digitalWrite(led_pin, LOW);
+  delayMicroseconds(280);
+
+  float mesured = analogRead(analog_pin);  //read analog pin / Dust value
+  delayMicroseconds(40);
+
+ // Serial.println("led hiht");
+  digitalWrite(led_pin, HIGH);
+  delayMicroseconds(9680);
+
+
+  int analog_bit = 10;
+  double analog_bit_num = pow(2., (double)analog_bit);
+  float inputvolts = 3.3;
+
+  // culc dust density
+  float dust = (0.17 * (mesured * (inputvolts / analog_bit_num)) - 0.1) * 1000.;
+  if( dust<0 )  dust=0.;
+
   Serial.print("Dust Density: "); Serial.print(dust); Serial.println(" ug/m3");
+
   
-  delay(1000); // misura ogni 1 secondi
+
+  
+  delay(3000); // misura ogni 1 secondi
 }
 
