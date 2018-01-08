@@ -24,7 +24,8 @@ const char* HA_ENTITY_ID = "";
 #include <ESP8266Influxdb.h>
 
 const int led_pin = 21;   // GPIO21
-const int analog_pin = 2; // ADC12 on GPIO2
+//const int analog_pin = 2; // ADC12 on GPIO2 con il WIFI attivo ADC1 viene inibito
+const int analog_pin = 35; // ADC1-CH7 on GPI35
 
 /******************* influxdb  *********************/
 const char *INFLUXDB_HOST = S_INFLUXDB_HOST;
@@ -74,7 +75,7 @@ void setup() {
 
   Serial.println("#######################################################################");
 
-  //setup_wifi();
+  setup_wifi();
   Serial.print("Configuring OTA device...");
     //TelnetServer.begin();   //Necesary to make Arduino Software autodetect OTA device
     ArduinoOTA.onStart([]() {Serial.println("OTA starting...");});
