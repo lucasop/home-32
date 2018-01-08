@@ -33,7 +33,11 @@ const uint16_t INFLUXDB_PORT = S_INFLUXDB_PORT;
 const char *DATABASE = S_INFLUXDB_DATABASE;
 const char *DB_USER = S_INFLUXDB_DB_USER;
 const char *DB_PASSWORD = S_INFLUXDB_DB_PASSWORD;
+
 Influxdb influxdb(INFLUXDB_HOST, INFLUXDB_PORT);
+
+
+
 
 /******************* WIFI *********************/
 const char* wifi_ssid     = S_WIFI_SSID;
@@ -100,6 +104,8 @@ void setup() {
   
   pinMode(led_pin,OUTPUT);
   //dustsensor.begin(led_pin, analog_pin);
+
+   influxdb.opendb(DATABASE, DB_USER, DB_PASSWORD);
   
 }
 
@@ -123,6 +129,16 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
+ 
+
+bool checkBound(float newValue, float prevValue, float maxDiff) {
+  return !isnan(newValue) &&
+         (newValue < prevValue - maxDiff || newValue > prevValue + maxDiff);
+}
+
+float dust = 0.0;
+float diffd = 0.1;
+
 
 /*----------------------------------------------------------
     SHARP GP2Y1010AU0F Dust Sensor  loop
@@ -131,7 +147,9 @@ void loop() {
 
   ArduinoOTA.handle();
 
- 
+
+
+
  // float dust = dustsensor.getDustDensity();                      // ADC12 on GPIO2
   //for(n=1; n<8; n++) dust += dustsensor.getDustDensity();
   //dust /= 8;
@@ -169,12 +187,28 @@ dustDensity = (0.17 * 0,71 - 0.1)*1000
 
 */
 
-  float dust = (0.17 * (mesured * (inputvolts / analog_bit_num)) - 0.1) * 1000.;
-  if( dust<0 )  dust=0.;
+  float dust1 = (0.17 * (mesured * (inputvolts / analog_bit_num)) - 0.1) * 1000.;
+  if( dust1<0 )  dust1=0.;
 
-  Serial.print("Dust raw: ");Serial.print(mesured); Serial.print("analogSetWidth: ");Serial.print(analogReadResolution);Serial.print("Dust Density: "); Serial.print(dust); Serial.println(" ug/m3");
+  float newDust = dust1; 
 
-  
+   if (checkBound(newDust, dust, diffd)) {
+      dust = newDust;
+      Serial.print("New dust:");
+      Serial.println(String(dust).c_str());
+      // Create field object with measurment name=power_read
+      FIELD dataObj("Dust_table");
+      dataObj.addTag("method", "Field_object"); // Add method tag
+      dataObj.addTag("dust", "D0"); // Add pin tag
+      dataObj.addField("value", dust); // Add value field
+//Serial.print("INFLUXDB_HOST: "); Serial.print(INFLUXDB_HOST);Serial.print(" INFLUXDB_PORT: "); Serial.println(INFLUXDB_PORT);
+      Serial.println(influxdb.write(dataObj) == DB_SUCCESS ? "Object write success" : "Writing failed");
+      // Empty field object.
+      dataObj.empty();
+      //client.publish(humidity_topic, String(hum).c_str(), true);
+      Serial.print(" Dust Density: "); Serial.print(newDust); Serial.println(" ug/m3");
+    }  
+
 
   
   delay(3000); // misura ogni 1 secondi
