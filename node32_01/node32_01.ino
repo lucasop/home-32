@@ -137,7 +137,53 @@ bool checkBound(float newValue, float prevValue, float maxDiff) {
 }
 
 float dust = 0.0;
-float diffd = 0.1;
+float diffd = 0.5;
+
+
+
+/*
+variable
+*/
+float density, voltage;
+int   adcvalue;
+
+/*
+private function
+*/
+int Filter(int m)
+{
+  static int flag_first = 0, _buff[10], sum;
+  const int _buff_max = 10;
+  int i;
+  
+  if(flag_first == 0)
+  {
+    flag_first = 1;
+
+    for(i = 0, sum = 0; i < _buff_max; i++)
+    {
+      _buff[i] = m;
+      sum += _buff[i];
+    }
+    return m;
+  }
+  else
+  {
+    sum -= _buff[0];
+    for(i = 0; i < (_buff_max - 1); i++)
+    {
+      _buff[i] = _buff[i + 1];
+    }
+    _buff[9] = m;
+    sum += _buff[9];
+    
+    i = sum / 10.0;
+    return i;
+  }
+}
+
+
+
 
 
 /*----------------------------------------------------------
@@ -187,6 +233,10 @@ dustDensity = (0.17 * 0,71 - 0.1)*1000
 
 */
 
+  mesured = Filter(mesured);
+
+  
+  
   float dust1 = (0.17 * (mesured * (inputvolts / analog_bit_num)) - 0.1) * 1000.;
   if( dust1<0 )  dust1=0.;
   float newDust = dust1; 
@@ -206,8 +256,9 @@ dustDensity = (0.17 * 0,71 - 0.1)*1000
       dataObj.empty();
       //client.publish(humidity_topic, String(hum).c_str(), true);
       Serial.print(" Publich Dust Density: "); Serial.print(dust); Serial.println(" ug/m3");
+      mesured = 0;
   }
   //}       
-  delay(6000); // misura ogni 1 secondi
+  delay(1000); // misura ogni 1 secondi
 }
 
