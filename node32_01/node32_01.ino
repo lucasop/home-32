@@ -140,50 +140,8 @@ float dust = 0.0;
 float diffd = 0.5;
 
 
-
-/*
-variable
-*/
-float density, voltage;
-int   adcvalue;
-
-/*
-private function
-*/
-int Filter(int m)
-{
-  static int flag_first = 0, _buff[10], sum;
-  const int _buff_max = 10;
-  int i;
-  
-  if(flag_first == 0)
-  {
-    flag_first = 1;
-
-    for(i = 0, sum = 0; i < _buff_max; i++)
-    {
-      _buff[i] = m;
-      sum += _buff[i];
-    }
-    return m;
-  }
-  else
-  {
-    sum -= _buff[0];
-    for(i = 0; i < (_buff_max - 1); i++)
-    {
-      _buff[i] = _buff[i + 1];
-    }
-    _buff[9] = m;
-    sum += _buff[9];
-    
-    i = sum / 10.0;
-    return i;
-  }
-}
-
-
-
+float AverageMeasure = 0;
+int MeasurementsToAverage = 20;
 
 
 /*----------------------------------------------------------
@@ -193,26 +151,6 @@ void loop() {
 
   ArduinoOTA.handle();
 
-
-
-
- // float dust = dustsensor.getDustDensity();                      // ADC12 on GPIO2
-  //for(n=1; n<8; n++) dust += dustsensor.getDustDensity();
-  //dust /= 8;
-  //Serial.print("Dust Density: "); Serial.print(dust); Serial.println(" ug/m3");
-
-//  Serial.println("led low");
-  digitalWrite(led_pin, LOW);
-  delayMicroseconds(280);
-
-  float mesured = analogRead(analog_pin);  //read analog pin / Dust value
-  delayMicroseconds(40);
-
- // Serial.println("led hiht");
-  digitalWrite(led_pin, HIGH);
-  delayMicroseconds(9680);
-
-
   int analog_bit = 10;
   double analog_bit_num = pow(2., (double)analog_bit);
   float inputvolts = 3.3;
@@ -220,6 +158,7 @@ void loop() {
 // culc dust density
 // pow(2., (double)analog_bit) = 2^10 =1024
 // inputvolts = 3.3 
+
 /*
 calcVoltage = voMeasured * (3.3v / 1024.0);
 dustDensity = (0.17 * calcVoltage - 0.1)*1000
@@ -233,17 +172,29 @@ dustDensity = (0.17 * 0,71 - 0.1)*1000
 
 */
 
-  mesured = Filter(mesured);
-
+ 
+  for(int i = 0; i < MeasurementsToAverage; ++i)
+  {
+     
+    digitalWrite(led_pin, LOW);
+    delayMicroseconds(280);
+    float mesured = analogRead(analog_pin);  //read analog pin / Dust value
+    delayMicroseconds(40);
+    digitalWrite(led_pin, HIGH);
+    delayMicroseconds(9680);
+    AverageMeasure += mesured;
+    delay(100);
+    
+  }
   
-  
-  float dust1 = (0.17 * (mesured * (inputvolts / analog_bit_num)) - 0.1) * 1000.;
+  AverageMeasure /= MeasurementsToAverage;
+  float dust1 = (0.17 * (AverageMeasure * (inputvolts / analog_bit_num)) - 0.1) * 1000.;
   if( dust1<0 )  dust1=0.;
   float newDust = dust1; 
       Serial.print("New dust:");
       Serial.println(String(newDust).c_str());
   if( newDust>0 ){
-  //  if (checkBound(newDust, dust, diffd)) {
+    if (checkBound(newDust, dust, diffd)) {
       dust = newDust;
       // Create field object with measurment name=power_read
       FIELD dataObj("Dust_table");
@@ -256,9 +207,9 @@ dustDensity = (0.17 * 0,71 - 0.1)*1000
       dataObj.empty();
       //client.publish(humidity_topic, String(hum).c_str(), true);
       Serial.print(" Publich Dust Density: "); Serial.print(dust); Serial.println(" ug/m3");
-      mesured = 0;
-  }
-  //}       
-  delay(1000); // misura ogni 1 secondi
+      //mesured = 0;
+    }
+  }       
+  delay(10000); // misura ogni 1 secondi
 }
 
