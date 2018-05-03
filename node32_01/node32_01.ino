@@ -1,12 +1,12 @@
 /*----------------------------------------------------------
-    SHARP GP2Y1010AU0F Dust Sensor  SAMPLE
+    SHARP GP2Y1010AU0F Dust Sensor  
   ----------------------------------------------------------*/
 
 /*  2017 LucaSOp */
 
 #include "Arduino.h"
 
-const char* DESC = "nodo_01-Dust-soggiorno";
+const char* DESC = "nodo_01-Dust-poggiolo";
 const char* VERS = "v1.0.0";
 const char* IP = "";
 const char* MAC = "";
@@ -57,6 +57,9 @@ int n = 0;
   ----------------------------------------------------------*/
 void setup() {
   Serial.begin(115200);
+  time=millis();
+  unsigned long sensor1time=millis();
+  unsigned long sensor1pausa=millis();
 
   // StartUp Banner
   Serial.println("#######################################################################");
@@ -148,6 +151,7 @@ int MeasurementsToAverage = 20;
     SHARP GP2Y1010AU0F Dust Sensor  loop
   ----------------------------------------------------------*/
 void loop() {
+  unsigned long time=millis();
 
   ArduinoOTA.handle();
 
@@ -155,61 +159,63 @@ void loop() {
   double analog_bit_num = pow(2., (double)analog_bit);
   float inputvolts = 3.3;
 
-// culc dust density
-// pow(2., (double)analog_bit) = 2^10 =1024
-// inputvolts = 3.3 
+  // culc dust density
+  // pow(2., (double)analog_bit) = 2^10 =1024
+  // inputvolts = 3.3 
 
-/*
-calcVoltage = voMeasured * (3.3v / 1024.0);
-dustDensity = (0.17 * calcVoltage - 0.1)*1000
+  /*
+  calcVoltage = voMeasured * (3.3v / 1024.0);
+  dustDensity = (0.17 * calcVoltage - 0.1)*1000
 
-So in my case when voltage for sensor is 3.3v and measure 221
+  So in my case when voltage for sensor is 3.3v and measure 221
 
-calcVoltage = 221* (3.3/ 1024.0);
-dustDensity = (0.17 * 0,71 - 0.1)*1000
------------------------------------------------
-26,7mg/m3
+  calcVoltage = 221* (3.3/ 1024.0);
+  dustDensity = (0.17 * 0,71 - 0.1)*1000
+  -----------------------------------------------
+  26,7mg/m3
 
-*/
+  */
 
- 
-  for(int i = 0; i < MeasurementsToAverage; ++i)
-  {
-     
-    digitalWrite(led_pin, LOW);
-    delayMicroseconds(280);
-    float mesured = analogRead(analog_pin);  //read analog pin / Dust value
-    delayMicroseconds(40);
-    digitalWrite(led_pin, HIGH);
-    delayMicroseconds(9680);
-    AverageMeasure += mesured;
-    delay(100);
-    
-  }
-  
-  AverageMeasure /= MeasurementsToAverage;
-  float dust1 = (0.17 * (AverageMeasure * (inputvolts / analog_bit_num)) - 0.1) * 1000.;
-  if( dust1<0 )  dust1=0.;
-  float newDust = dust1; 
-      Serial.print("New dust:");
-      Serial.println(String(newDust).c_str());
-  if( newDust>0 ){
-    if (checkBound(newDust, dust, diffd)) {
-      dust = newDust;
-      // Create field object with measurment name=power_read
-      FIELD dataObj("Dust_table");
-      dataObj.addTag("method", "Field_object"); // Add method tag
-      dataObj.addTag("dust", "D0"); // Add pin tag
-      dataObj.addField("value", dust); // Add value field
-      //Serial.print("INFLUXDB_HOST: "); Serial.print(INFLUXDB_HOST);Serial.print(" INFLUXDB_PORT: "); Serial.println(INFLUXDB_PORT);
-      Serial.println(influxdb.write(dataObj) == DB_SUCCESS ? "Object write success" : "Writing failed");
-      // Empty field object.
-      dataObj.empty();
-      //client.publish(humidity_topic, String(hum).c_str(), true);
-      Serial.print(" Publich Dust Density: "); Serial.print(dust); Serial.println(" ug/m3");
-      //mesured = 0;
+  if(time>sensor1pausa+10000){
+    for(int i = 0; i < MeasurementsToAverage; ++i){   
+      if(time>sensor1time+100){
+        digitalWrite(led_pin, LOW);
+        delayMicroseconds(280);
+        float mesured = analogRead(analog_pin);  //read analog pin / Dust value
+        delayMicroseconds(40);
+        digitalWrite(led_pin, HIGH);
+        delayMicroseconds(9680);
+        AverageMeasure += mesured;
+        sensor1time=millis();
+        //delay(100);
+      } 
     }
-  }       
-  delay(10000); // misura ogni 1 secondi
+    
+    AverageMeasure /= MeasurementsToAverage;
+    float dust1 = (0.17 * (AverageMeasure * (inputvolts / analog_bit_num)) - 0.1) * 1000.;
+    if( dust1<0 )  dust1=0.;
+    float newDust = dust1; 
+        Serial.print("New dust:");
+        Serial.println(String(newDust).c_str());
+    if( newDust>0 ){
+      if (checkBound(newDust, dust, diffd)) {
+        dust = newDust;
+        // Create field object with measurment name=power_read
+        FIELD dataObj("Dust_table");
+        dataObj.addTag("method", "Field_object"); // Add method tag
+        dataObj.addTag("dust", "D0"); // Add pin tag
+        dataObj.addField("value", dust); // Add value field
+        //Serial.print("INFLUXDB_HOST: "); Serial.print(INFLUXDB_HOST);Serial.print(" INFLUXDB_PORT: "); Serial.println(INFLUXDB_PORT);
+        Serial.println(influxdb.write(dataObj) == DB_SUCCESS ? "Object write success" : "Writing failed");
+        // Empty field object.
+        dataObj.empty();
+        //client.publish(humidity_topic, String(hum).c_str(), true);
+        Serial.print(" Publich Dust Density: "); Serial.print(dust); Serial.println(" ug/m3");
+        //mesured = 0;
+      }
+    }       
+    //delay(10000); // misura ogni 1 secondi
+  sensor1pausa=millis();
+  }
 }
 
