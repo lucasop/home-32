@@ -8,11 +8,12 @@ observe vehicle attribute (position) changes.
 usage
 
 lancio il simulatore quad
-dronekit-sitl copter --home=46.5,11.33,256,353 --model=quad
+dronekit-sitl copter-3.3 --home=46.492248,11.3465918,256,353 --model=quad
 
 lancio mavproxy con due porte qgrouncontrol 144550 e dronekit app 14551 
 mavproxy.py --master tcp:127.0.0.1:5760  --out 127.0.0.1:14550 --out 127.0.0.1:14551
 
+cd /Users/lucasoprana/Documents/VScode-project/home-32/DK
 python dk_location.py --connect udp:127.0.0.1:14551
 
 
