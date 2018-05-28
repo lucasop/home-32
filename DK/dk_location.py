@@ -16,6 +16,7 @@ mavproxy.py --master tcp:127.0.0.1:5760  --out 127.0.0.1:14550 --out 127.0.0.1:1
 python dk_location.py --connect udp:127.0.0.1:14551
 
 
+
 """
 from __future__ import print_function
 from dronekit import connect, VehicleMode
@@ -64,4 +65,20 @@ vehicle.add_attribute_listener('location.global_frame', location_callback)
 # Wait 2s so callback can be notified before the observer is removed
 time.sleep(600)
 
+"""
+import os
+import time
+import sys
+
+#sys.exit()
+
+iname=1
+while True:
+	dummy=raw_input()
+	myname=str(iname)+".jpg"
+	os.system("raspistill -t 1000 -sh -100 -ex sports -awb off -q 100 -o /home/pi/"+myname)
+	#time.sleep(1.5)
+	iname+=1
+
+"""
 
