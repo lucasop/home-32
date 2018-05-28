@@ -20,11 +20,12 @@ const char* HA_ENTITY_ID = "";
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
-#include <GP2Y1010_DustSensor.h>
+//#include <GP2Y1010_DustSensor.h>
 #include <ESP8266Influxdb.h>
 
 const int led_pin = 21;   // GPIO21
-const int analog_pin = 2; // ADC12 on GPIO2
+//const int analog_pin = 2; // ADC12 on GPIO2 con il WIFI attivo ADC1 viene inibito
+const int analog_pin = 35; // ADC1-CH7 on GPI35
 
 /******************* influxdb  *********************/
 const char *INFLUXDB_HOST = S_INFLUXDB_HOST;
@@ -32,7 +33,11 @@ const uint16_t INFLUXDB_PORT = S_INFLUXDB_PORT;
 const char *DATABASE = S_INFLUXDB_DATABASE;
 const char *DB_USER = S_INFLUXDB_DB_USER;
 const char *DB_PASSWORD = S_INFLUXDB_DB_PASSWORD;
+
 Influxdb influxdb(INFLUXDB_HOST, INFLUXDB_PORT);
+
+
+
 
 /******************* WIFI *********************/
 const char* wifi_ssid     = S_WIFI_SSID;
@@ -45,7 +50,7 @@ const char* wifi_password = S_WIFI_PASSWORD;
 
 //WiFiClient client;
 
-GP2Y1010_DustSensor dustsensor;
+//GP2Y1010_DustSensor dustsensor;
 int n = 0;
 /*----------------------------------------------------------
     SHARP GP2Y1010AU0F Dust Sensor  setup
@@ -74,7 +79,7 @@ void setup() {
 
   Serial.println("#######################################################################");
 
-  //setup_wifi();
+  setup_wifi();
   Serial.print("Configuring OTA device...");
     //TelnetServer.begin();   //Necesary to make Arduino Software autodetect OTA device
     ArduinoOTA.onStart([]() {Serial.println("OTA starting...");});
@@ -92,13 +97,15 @@ void setup() {
     Serial.println("OK");
 
 
-  dustsensor.setADCbit(10);
-  dustsensor.setInputVolts(3.3);
+  //dustsensor.setInputVolts(3.3);
+  analogSetWidth(10);                           // 10Bit resolution
   analogSetAttenuation((adc_attenuation_t)2);   // -6dB range tutti gli ADC
   //analogSetPinAttenuation(analog_pin,(adc_attenuation_t)2); // -6dB range 
   
   pinMode(led_pin,OUTPUT);
   //dustsensor.begin(led_pin, analog_pin);
+
+   influxdb.opendb(DATABASE, DB_USER, DB_PASSWORD);
   
 }
 
@@ -122,6 +129,20 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
+ 
+
+bool checkBound(float newValue, float prevValue, float maxDiff) {
+  return !isnan(newValue) &&
+         (newValue < prevValue - maxDiff || newValue > prevValue + maxDiff);
+}
+
+float dust = 0.0;
+float diffd = 0.5;
+
+
+float AverageMeasure = 0;
+int MeasurementsToAverage = 20;
+
 
 /*----------------------------------------------------------
     SHARP GP2Y1010AU0F Dust Sensor  loop
@@ -130,37 +151,65 @@ void loop() {
 
   ArduinoOTA.handle();
 
- 
- // float dust = dustsensor.getDustDensity();                      // ADC12 on GPIO2
-  //for(n=1; n<8; n++) dust += dustsensor.getDustDensity();
-  //dust /= 8;
-  //Serial.print("Dust Density: "); Serial.print(dust); Serial.println(" ug/m3");
-
-//  Serial.println("led low");
-  digitalWrite(led_pin, LOW);
-  delayMicroseconds(280);
-
-  float mesured = analogRead(analog_pin);  //read analog pin / Dust value
-  delayMicroseconds(40);
-
- // Serial.println("led hiht");
-  digitalWrite(led_pin, HIGH);
-  delayMicroseconds(9680);
-
-
   int analog_bit = 10;
   double analog_bit_num = pow(2., (double)analog_bit);
   float inputvolts = 3.3;
 
-  // culc dust density
-  float dust = (0.17 * (mesured * (inputvolts / analog_bit_num)) - 0.1) * 1000.;
-  if( dust<0 )  dust=0.;
+// culc dust density
+// pow(2., (double)analog_bit) = 2^10 =1024
+// inputvolts = 3.3 
 
-  Serial.print("Dust Density: "); Serial.print(dust); Serial.println(" ug/m3");
+/*
+calcVoltage = voMeasured * (3.3v / 1024.0);
+dustDensity = (0.17 * calcVoltage - 0.1)*1000
 
+So in my case when voltage for sensor is 3.3v and measure 221
+
+calcVoltage = 221* (3.3/ 1024.0);
+dustDensity = (0.17 * 0,71 - 0.1)*1000
+-----------------------------------------------
+26,7mg/m3
+
+*/
+
+ 
+  for(int i = 0; i < MeasurementsToAverage; ++i)
+  {
+     
+    digitalWrite(led_pin, LOW);
+    delayMicroseconds(280);
+    float mesured = analogRead(analog_pin);  //read analog pin / Dust value
+    delayMicroseconds(40);
+    digitalWrite(led_pin, HIGH);
+    delayMicroseconds(9680);
+    AverageMeasure += mesured;
+    delay(100);
+    
+  }
   
-
-  
-  delay(3000); // misura ogni 1 secondi
+  AverageMeasure /= MeasurementsToAverage;
+  float dust1 = (0.17 * (AverageMeasure * (inputvolts / analog_bit_num)) - 0.1) * 1000.;
+  if( dust1<0 )  dust1=0.;
+  float newDust = dust1; 
+      Serial.print("New dust:");
+      Serial.println(String(newDust).c_str());
+  if( newDust>0 ){
+    if (checkBound(newDust, dust, diffd)) {
+      dust = newDust;
+      // Create field object with measurment name=power_read
+      FIELD dataObj("Dust_table");
+      dataObj.addTag("method", "Field_object"); // Add method tag
+      dataObj.addTag("dust", "D0"); // Add pin tag
+      dataObj.addField("value", dust); // Add value field
+      //Serial.print("INFLUXDB_HOST: "); Serial.print(INFLUXDB_HOST);Serial.print(" INFLUXDB_PORT: "); Serial.println(INFLUXDB_PORT);
+      Serial.println(influxdb.write(dataObj) == DB_SUCCESS ? "Object write success" : "Writing failed");
+      // Empty field object.
+      dataObj.empty();
+      //client.publish(humidity_topic, String(hum).c_str(), true);
+      Serial.print(" Publich Dust Density: "); Serial.print(dust); Serial.println(" ug/m3");
+      //mesured = 0;
+    }
+  }       
+  delay(10000); // misura ogni 1 secondi
 }
 
