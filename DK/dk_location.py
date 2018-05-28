@@ -41,3 +41,15 @@ print(" Attitude: %s" % vehicle.attitude)
 print(" Velocity: %s" % vehicle.velocity)
 print(" GPS: %s" % vehicle.gps_0)
 
+#Callback to print the location in global frames. 'value' is the updated value
+def location_callback(self, attr_name, value):
+    print "Location (Global): ", value
+
+
+# Add a callback `location_callback` for the `global_frame` attribute.
+vehicle.add_attribute_listener('location.global_frame', location_callback)
+
+# Wait 2s so callback can be notified before the observer is removed
+time.sleep(2)
+
+
