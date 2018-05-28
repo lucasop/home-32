@@ -16,7 +16,6 @@ mavproxy.py --master tcp:127.0.0.1:5760  --out 127.0.0.1:14550 --out 127.0.0.1:1
 python dk_location.py --connect udp:127.0.0.1:14551
 
 
-
 """
 from __future__ import print_function
 from dronekit import connect, VehicleMode
