@@ -16,6 +16,13 @@ mavproxy.py --master tcp:127.0.0.1:5760  --out 127.0.0.1:14550 --out 127.0.0.1:1
 cd /Users/lucasoprana/Documents/VScode-project/home-32/DK
 python dk_location.py --connect udp:127.0.0.1:14551
 
+mycopter T4
+ssh pi@10.0.1.128
+python dk_location.py --connect udp:127.0.0.1:14570
+
+scp pi@10.0.1.128:test.jpg test.jpg
+scp dk_location.py pi@10.0.1.128:dk_location.py
+
 
 
 """
