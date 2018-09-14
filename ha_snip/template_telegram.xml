@@ -1,0 +1,29 @@
+micol {{ states.device_tracker.iphonedimaicol.state|lower }}
+
+
+MICOL   {{ states.device_tracker.iphonedimaicol.state|lower}}
+DAVIDE  {{ states.device_tracker.iphonedidavide.state|lower}}
+SARETTA {{ states.device_tracker.iPhonedeQuaglia.state|lower}}
+
+
+{% for entity in states.group.ospiti.attributes.entity_id  -%}
+    {{ states[entity.split('.')[0]][entity.split('.')[1]].name|lower}}
+    {{states[entity.split('.')[0]][entity.split('.')[1]].state|lower}}
+{%- else -%}   
+{%- endfor -%}
+
+
+
+{% for entity_id in states.group.family.attributes.entity_id  -%}
+{% set parts = entity_id.split('.') -%}
+{%- if states(entity_id) == 'home' %}
+{%- if loop.first %} {% elif loop.last %} {% else %} {% endif -%}{{ states[parts[0]][parts[1]].name }}{% endif -%}
+{%- endfor %}
+
+
+{% for entity_id in states.group.ospiti.attributes.entity_id  -%}
+{% set parts = entity_id.split('.') -%}
+{%- if states(entity_id) == 'home' %}
+{%- if loop.first %} {% elif loop.last %} {% else %} {% endif -%}{{ states[parts[0]][parts[1]].name }}{% endif -%}
+{%- endfor %}
+
