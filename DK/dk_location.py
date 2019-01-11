@@ -66,6 +66,14 @@ print(" GPS: %s" % vehicle.gps_0)
 def location_callback(self, attr_name, value):
     print ("Location (Global): ", value)
 
+@vehicle.on_message('CAMERA_FEEDBACK')
+def listener(self, name, message):
+    print ('img idx: %s' % message.img_idx)
+    print ('Latitudine: %s' % message.lat)
+    print ('Longitudine: %s' % message.lng)
+    print ('Hslm: %s' % message.alt_msl)
+
+
 
 # Add a callback `location_callback` for the `global_frame` attribute.
 vehicle.add_attribute_listener('location.global_frame', location_callback)
